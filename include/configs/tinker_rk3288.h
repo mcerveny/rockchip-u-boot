@@ -10,15 +10,14 @@
 #define ROCKCHIP_DEVICE_SETTINGS
 #include <configs/rk3288_common.h>
 
-#undef BOOT_TARGET_DEVICES
+#define CONFIG_ENV_IS_NOWHERE
+#define CONFIG_SPL_SPI_LOAD
+#define CONFIG_SPI_FLASH_DATAFLASH 1
+#define CONFIG_SF_DEFAULT_BUS 0
+#define CONFIG_SF_DEFAULT_CS 0
+#define CONFIG_SF_DEFAULT_SPEED 20000000
+#define CONFIG_SF_DEFAULT_MODE (SPI_MODE_3)
 
-#define BOOT_TARGET_DEVICES(func) \
-	func(MMC, mmc, 1) \
-	func(USB, usb, 0) \
-	func(PXE, pxe, na) \
-	func(DHCP, dchp, na)
-
-#define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_SYS_MMC_ENV_DEV 1
+#define CONFIG_CMD_SF_TEST
 
 #endif

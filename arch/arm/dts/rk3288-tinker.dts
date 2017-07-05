@@ -14,6 +14,10 @@
 	chosen {
 		stdout-path = &uart2;
 	};
+
+	config {
+		u-boot,boot0 = &bootflash;
+	};
 };
 
 &dmc {
@@ -52,11 +56,8 @@
 	status = "okay";
 };
 
+/*
 &sdmmc {
-	u-boot,dm-pre-reloc;
-};
-
-&emmc {
 	u-boot,dm-pre-reloc;
 };
 
@@ -67,10 +68,24 @@
 &gpio8 {
 	u-boot,dm-pre-reloc;
 };
+*/
 
 &i2c2 {
     m24c08@50 {
         compatible = "at,24c08", "i2c-eeprom";
         reg = <0x50>;
     };
+};
+
+&spi2 {
+	u-boot,dm-pre-reloc;
+
+	bootflash: spidev@0 {
+		u-boot,dm-pre-reloc;
+		compatible = "atmel,at45";
+		reg = <0>;
+		spi-max-frequency = <20000000>;
+		spi-cpha = <1>;
+		spi-cpol = <1>;
+	};
 };
