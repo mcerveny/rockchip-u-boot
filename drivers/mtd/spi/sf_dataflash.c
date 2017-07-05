@@ -382,7 +382,7 @@ int spi_dataflash_write(struct udevice *dev, u32 offset, size_t len,
 
 		/* Check result of the compare operation */
 		if (status & (1 << 6)) {
-			printf("dataflash: write compare page %u, err %d\n",
+			debug("dataflash: write compare page %u, err %d\n",
 			       pageaddr, status);
 			remaining = 0;
 			status = -EIO;
@@ -425,11 +425,11 @@ static int add_dataflash(struct udevice *dev, char *name, int nr_pages,
 	spi_flash->erase_size = pagesize;
 
 #ifndef CONFIG_SPL_BUILD
-	printf("SPI DataFlash: Detected %s with page size ", spi_flash->name);
+	debug("SPI DataFlash: Detected %s with page size ", spi_flash->name);
 	print_size(spi_flash->page_size, ", erase size ");
 	print_size(spi_flash->erase_size, ", total ");
 	print_size(spi_flash->size, "");
-	printf(", revision %c", revision);
+	debug(", revision %c", revision);
 	puts("\n");
 #endif
 
@@ -472,28 +472,7 @@ static struct flash_info dataflash_data[] = {
 	 * These newer chips also support 128-byte security registers (with
 	 * 64 bytes one-time-programmable) and software write-protection.
 	 */
-	{ "AT45DB011B",  0x1f2200, 512, 264, 9, SUP_POW2PS},
-	{ "at45db011d",  0x1f2200, 512, 256, 8, SUP_POW2PS | IS_POW2PS},
-
-	{ "AT45DB021B",  0x1f2300, 1024, 264, 9, SUP_POW2PS},
-	{ "at45db021d",  0x1f2300, 1024, 256, 8, SUP_POW2PS | IS_POW2PS},
-
-	{ "AT45DB041x",  0x1f2400, 2048, 264, 9, SUP_POW2PS},
 	{ "at45db041d",  0x1f2400, 2048, 256, 8, SUP_POW2PS | IS_POW2PS},
-
-	{ "AT45DB081B",  0x1f2500, 4096, 264, 9, SUP_POW2PS},
-	{ "at45db081d",  0x1f2500, 4096, 256, 8, SUP_POW2PS | IS_POW2PS},
-
-	{ "AT45DB161x",  0x1f2600, 4096, 528, 10, SUP_POW2PS},
-	{ "at45db161d",  0x1f2600, 4096, 512, 9, SUP_POW2PS | IS_POW2PS},
-
-	{ "AT45DB321x",  0x1f2700, 8192, 528, 10, 0},		/* rev C */
-
-	{ "AT45DB321x",  0x1f2701, 8192, 528, 10, SUP_POW2PS},
-	{ "at45db321d",  0x1f2701, 8192, 512, 9, SUP_POW2PS | IS_POW2PS},
-
-	{ "AT45DB642x",  0x1f2800, 8192, 1056, 11, SUP_POW2PS},
-	{ "at45db642d",  0x1f2800, 8192, 1024, 10, SUP_POW2PS | IS_POW2PS},
 };
 
 static struct flash_info *jedec_probe(struct spi_slave *spi)
@@ -515,7 +494,7 @@ static struct flash_info *jedec_probe(struct spi_slave *spi)
 	 */
 	tmp = spi_flash_cmd(spi, CMD_READ_ID, id, sizeof(id));
 	if (tmp < 0) {
-		printf("dataflash: error %d reading JEDEC ID\n", tmp);
+		debug("dataflash: error %d reading JEDEC ID\n", tmp);
 		return ERR_PTR(tmp);
 	}
 	if (id[0] != 0x1f)
@@ -556,7 +535,7 @@ static struct flash_info *jedec_probe(struct spi_slave *spi)
 	 * size (it might be binary) even when we can tell which density
 	 * class is involved (legacy chip id scheme).
 	 */
-	printf("dataflash: JEDEC id %06x not handled\n", jedec);
+	debug("dataflash: JEDEC id %06x not handled\n", jedec);
 	return ERR_PTR(-ENODEV);
 }
 
@@ -605,6 +584,7 @@ static int spi_dataflash_probe(struct udevice *dev)
 				(info->flags & SUP_POW2PS) ? 'd' : 'c');
 		if (status < 0)
 			goto err_status;
+		return status;
 	}
 
        /*
@@ -613,7 +593,7 @@ static int spi_dataflash_probe(struct udevice *dev)
 	*/
 	status = dataflash_status(spi);
 	if (status <= 0 || status == 0xff) {
-		printf("dataflash: read status error %d\n", status);
+		debug("dataflash: read status error %d\n", status);
 		if (status == 0 || status == 0xff)
 			status = -ENODEV;
 		goto err_jedec_probe;
@@ -625,31 +605,8 @@ static int spi_dataflash_probe(struct udevice *dev)
 	* match f(car) for continuous reads, mode 0 or 3.
 	*/
 	switch (status & 0x3c) {
-	case 0x0c:	/* 0 0 1 1 x x */
-		status = add_dataflash(dev, "AT45DB011B", 512, 264, 9, 0);
-		break;
-	case 0x14:	/* 0 1 0 1 x x */
-		status = add_dataflash(dev, "AT45DB021B", 1024, 264, 9, 0);
-		break;
-	case 0x1c:	/* 0 1 1 1 x x */
-		status = add_dataflash(dev, "AT45DB041x", 2048, 264, 9, 0);
-		break;
-	case 0x24:	/* 1 0 0 1 x x */
-		status = add_dataflash(dev, "AT45DB081B", 4096, 264, 9, 0);
-		break;
-	case 0x2c:	/* 1 0 1 1 x x */
-		status = add_dataflash(dev, "AT45DB161x", 4096, 528, 10, 0);
-		break;
-	case 0x34:	/* 1 1 0 1 x x */
-		status = add_dataflash(dev, "AT45DB321x", 8192, 528, 10, 0);
-		break;
-	case 0x38:	/* 1 1 1 x x x */
-	case 0x3c:
-		status = add_dataflash(dev, "AT45DB642x", 8192, 1056, 11, 0);
-		break;
-	/* obsolete AT45DB1282 not (yet?) supported */
 	default:
-		printf("dataflash: unsupported device (%x)\n", status & 0x3c);
+		debug("dataflash: unsupported device (%x)\n", status & 0x3c);
 		status = -ENODEV;
 		goto err_status;
 	}

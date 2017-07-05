@@ -26,7 +26,11 @@ DECLARE_GLOBAL_DATA_PTR;
  * good reason why driver-model conversion is infeasible. Examples include
  * things which are used before driver model is available.
  */
+#ifndef CONFIG_SPL_BUILD
 #define COMPAT(id, name) name
+#else
+#define COMPAT(id, name) "U"
+#endif
 static const char * const compat_names[COMPAT_COUNT] = {
 	COMPAT(UNKNOWN, "<none>"),
 	COMPAT(NVIDIA_TEGRA20_EMC, "nvidia,tegra20-emc"),

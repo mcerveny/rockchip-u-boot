@@ -18,9 +18,13 @@ struct fdt_errtabent {
 	const char *str;
 };
 
+#ifndef CONFIG_SPL_BUILD
 #define FDT_ERRTABENT(val) \
 	[(val)] = { .str = #val, }
-
+#else
+#define FDT_ERRTABENT(val) \
+	[(val)] = { .str = "E", }
+#endif
 static struct fdt_errtabent fdt_errtable[] = {
 	FDT_ERRTABENT(FDT_ERR_NOTFOUND),
 	FDT_ERRTABENT(FDT_ERR_EXISTS),

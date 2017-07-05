@@ -245,7 +245,7 @@ static int spi_flash_wait_till_ready(struct spi_flash *flash,
 			return 0;
 	}
 
-	printf("SF: Timeout!\n");
+	debug("SF: Timeout!\n");
 
 	return -ETIMEDOUT;
 }
@@ -305,7 +305,7 @@ int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 
 	if (flash->flash_is_locked) {
 		if (flash->flash_is_locked(flash, offset, len) > 0) {
-			printf("offset 0x%x is protected and cannot be erased\n",
+			debug("offset 0x%x is protected and cannot be erased\n",
 			       offset);
 			return -EINVAL;
 		}
@@ -356,7 +356,7 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 
 	if (flash->flash_is_locked) {
 		if (flash->flash_is_locked(flash, offset, len) > 0) {
-			printf("offset 0x%x is protected and cannot be written\n",
+			debug("offset 0x%x is protected and cannot be written\n",
 			       offset);
 			return -EINVAL;
 		}
@@ -827,7 +827,7 @@ static int macronix_quad_enable(struct spi_flash *flash)
 	/* read SR and check it */
 	ret = read_sr(flash, &qeb_status);
 	if (!(ret >= 0 && (qeb_status & STATUS_QEB_MXIC))) {
-		printf("SF: Macronix SR Quad bit not clear\n");
+		debug("SF: Macronix SR Quad bit not clear\n");
 		return -EINVAL;
 	}
 
@@ -855,7 +855,7 @@ static int spansion_quad_enable(struct spi_flash *flash)
 	/* read CR and check it */
 	ret = read_cr(flash, &qeb_status);
 	if (!(ret >= 0 && (qeb_status & STATUS_QEB_WINSPAN))) {
-		printf("SF: Spansion CR Quad bit not clear\n");
+		debug("SF: Spansion CR Quad bit not clear\n");
 		return -EINVAL;
 	}
 
@@ -871,7 +871,7 @@ static const struct spi_flash_info *spi_flash_read_id(struct spi_flash *flash)
 
 	tmp = spi_flash_cmd(flash->spi, CMD_READ_ID, id, SPI_FLASH_MAX_ID_LEN);
 	if (tmp < 0) {
-		printf("SF: error %d reading JEDEC ID\n", tmp);
+		debug("SF: error %d reading JEDEC ID\n", tmp);
 		return ERR_PTR(tmp);
 	}
 
@@ -883,7 +883,7 @@ static const struct spi_flash_info *spi_flash_read_id(struct spi_flash *flash)
 		}
 	}
 
-	printf("SF: unrecognized JEDEC id bytes: %02x, %02x, %02x\n",
+	debug("SF: unrecognized JEDEC id bytes: %02x, %02x, %02x\n",
 	       id[0], id[1], id[2]);
 	return ERR_PTR(-ENODEV);
 }
@@ -907,7 +907,7 @@ static int set_quad_mode(struct spi_flash *flash,
 		return 0;
 #endif
 	default:
-		printf("SF: Need set QEB func for %02x flash\n",
+		debug("SF: Need set QEB func for %02x flash\n",
 		       JEDEC_MFR(info));
 		return -1;
 	}
@@ -1089,13 +1089,13 @@ int spi_flash_scan(struct spi_flash *flash)
 #endif
 
 #ifndef CONFIG_SPL_BUILD
-	printf("SF: Detected %s with page size ", flash->name);
+	debug("SF: Detected %s with page size ", flash->name);
 	print_size(flash->page_size, ", erase size ");
 	print_size(flash->erase_size, ", total ");
 	print_size(flash->size, "");
 	if (flash->memory_map)
-		printf(", mapped at %p", flash->memory_map);
-	puts("\n");
+		debug(", mapped at %p", flash->memory_map);
+	debug("\n");
 #endif
 
 #ifndef CONFIG_SPI_FLASH_BAR
@@ -1103,8 +1103,8 @@ int spi_flash_scan(struct spi_flash *flash)
 	     (flash->size > SPI_FLASH_16MB_BOUN)) ||
 	     ((flash->dual_flash > SF_SINGLE_FLASH) &&
 	     (flash->size > SPI_FLASH_16MB_BOUN << 1))) {
-		puts("SF: Warning - Only lower 16MiB accessible,");
-		puts(" Full access #define CONFIG_SPI_FLASH_BAR\n");
+		debug("SF: Warning - Only lower 16MiB accessible,");
+		debug(" Full access #define CONFIG_SPI_FLASH_BAR\n");
 	}
 #endif
 
